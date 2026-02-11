@@ -1,0 +1,126 @@
+/* Global */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(to right, #f8fafc, #eef2f7);
+  color: #1f2937;
+}
+
+/* Top header */
+.header {
+  background: #1e293b;
+  padding: 18px 40px;
+  color: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+/* Page wrapper */
+.wrapper {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+/* Attempt Section */
+.attempt-section {
+  margin-bottom: 30px;
+}
+
+.attempt-section h2 {
+  margin-bottom: 15px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* Attempt buttons */
+.attempt-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.attempt-list button {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 13px;
+}
+
+.attempt-list button:hover {
+  background: #e2e8f0;
+  transform: translateY(-2px);
+}
+
+/* Summary + Events container */
+.container {
+  display: flex;
+  gap: 24px;
+}
+
+/* Cards */
+.box {
+  background: #ffffff;
+  padding: 22px;
+  border-radius: 12px;
+  width: 50%;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+.box h3 {
+  margin-top: 0;
+  margin-bottom: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 8px;
+}
+
+.box p {
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+/* Raw events */
+pre {
+  background: #f8fafc;
+  padding: 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  max-height: 380px;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+}
+
+/* Risk badge */
+.risk-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: 8px;
+}
+
+.risk-badge.low {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.risk-badge.medium {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.risk-badge.high {
+  background: #fee2e2;
+  color: #b91c1c;
+}

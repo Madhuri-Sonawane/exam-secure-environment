@@ -9,7 +9,23 @@ const AttemptSchema = new mongoose.Schema({
   sessionId: String,
   ipChanges: { type: Number, default: 0 },
   startTime: String,
+  endTime: String,
+
+  firstName: { type: String },
+  surname: { type: String },
+  email: { type: String },
+
+  initialIp: String,
+  isp: String,
+  region: String,
+  userAgent: String,
+  sessionId: String,
+
+  ipChanges: Number,
+  startTime: String,
   endTime: String
 });
+
+
 
 module.exports = mongoose.model("Attempt", AttemptSchema);

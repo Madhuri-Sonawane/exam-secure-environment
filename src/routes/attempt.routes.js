@@ -15,8 +15,11 @@ const router = express.Router();
  */
 router.post("/start", async (req, res) => {
   try {
+    const { firstName, surname, email } = req.body;
+
     const attemptId = uuid();
     const ip = getClientIp(req);
+    const now = new Date().toISOString();
 
     const userAgent = req.headers["user-agent"] || "UNKNOWN";
     const sessionId = req.headers["x-session-id"] || uuid();
@@ -29,24 +32,30 @@ router.post("/start", async (req, res) => {
       const data = await response.json();
       isp = data.org || "UNKNOWN";
       region = data.region || "UNKNOWN";
-    } catch {}
+    } catch (e) {
+      console.warn("ISP lookup failed:", e.message);
+    }
 
     await Attempt.create({
       attemptId,
+      firstName,
+      surname,
+      email,
       initialIp: ip,
       isp,
       region,
       userAgent,
       sessionId,
       ipChanges: 0,
-      startTime: new Date().toISOString(),
+      startTime: now,
       endTime: null
     });
 
     await logEvent({
       eventType: "IP_CAPTURED_INITIAL",
       attemptId,
-      timestamp: new Date().toISOString(),
+      timestamp: now,
+      questionId: null,
       metadata: {
         ip,
         isp,
@@ -60,10 +69,11 @@ router.post("/start", async (req, res) => {
     res.json({ attemptId });
 
   } catch (err) {
-    console.error(err);
+    console.error("START ERROR:", err);
     res.status(500).json({ message: "Failed to start exam" });
   }
 });
+
 
 /**
  * CHECK IP
@@ -73,8 +83,9 @@ router.post("/check-ip", async (req, res) => {
     const { attemptId } = req.body;
 
     const attempt = await Attempt.findOne({ attemptId });
-    if (!attempt)
+    if (!attempt) {
       return res.status(404).json({ message: "Attempt not found" });
+    }
 
     if (attempt.endTime) {
       return res.status(403).json({
@@ -83,11 +94,13 @@ router.post("/check-ip", async (req, res) => {
     }
 
     const currentIp = getClientIp(req);
+    const now = new Date().toISOString();
 
     await logEvent({
       eventType: "IP_CHECK_PERFORMED",
       attemptId,
-      timestamp: new Date().toISOString(),
+      timestamp: now,
+      questionId: null,
       metadata: { currentIp }
     });
 
@@ -103,7 +116,9 @@ router.post("/check-ip", async (req, res) => {
       const data = await response.json();
       newIsp = data.org || "UNKNOWN";
       newRegion = data.region || "UNKNOWN";
-    } catch {}
+    } catch (e) {
+      console.warn("ISP lookup failed:", e.message);
+    }
 
     attempt.ipChanges += 1;
 
@@ -120,7 +135,8 @@ router.post("/check-ip", async (req, res) => {
     await logEvent({
       eventType: "IP_CHANGE_DETECTED",
       attemptId,
-      timestamp: new Date().toISOString(),
+      timestamp: now,
+      questionId: null,
       metadata: {
         oldIp: attempt.initialIp,
         newIp: currentIp
@@ -130,7 +146,8 @@ router.post("/check-ip", async (req, res) => {
     await logEvent({
       eventType: "IP_CHANGE_CLASSIFIED",
       attemptId,
-      timestamp: new Date().toISOString(),
+      timestamp: now,
+      questionId: null,
       metadata: {
         oldIsp: attempt.isp,
         newIsp,
@@ -149,10 +166,11 @@ router.post("/check-ip", async (req, res) => {
     res.json({ ipChanged: true });
 
   } catch (err) {
-    console.error(err);
+    console.error("IP CHECK ERROR:", err);
     res.status(500).json({ message: "IP check failed" });
   }
 });
+
 
 /**
  * END EXAM
@@ -162,7 +180,9 @@ router.post("/end", async (req, res) => {
     const { attemptId } = req.body;
 
     const attempt = await Attempt.findOne({ attemptId });
-    if (!attempt) return res.sendStatus(404);
+    if (!attempt) {
+      return res.status(404).json({ message: "Attempt not found" });
+    }
 
     attempt.endTime = new Date().toISOString();
     await attempt.save();
@@ -170,16 +190,19 @@ router.post("/end", async (req, res) => {
     await logEvent({
       eventType: "EXAM_ENDED",
       attemptId,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      questionId: null,
+      metadata: {}
     });
 
     res.json({ message: "Exam ended successfully" });
 
   } catch (err) {
-    console.error(err);
+    console.error("END ERROR:", err);
     res.status(500).json({ message: "Failed to end exam" });
   }
 });
+
 
 /**
  * VIEW ALL ATTEMPTS (WITH COUNTS)
@@ -190,30 +213,33 @@ router.get("/all", async (req, res) => {
     const result = [];
 
     for (const attempt of attempts) {
-      const events = await Event.find({ attemptId: attempt.attemptId });
 
-      const counts = {
-        copyCount: 0,
-        pasteCount: 0,
-        tabSwitchCount: 0
-      };
+      const events = await Event.find({
+        attemptId: attempt.attemptId
+      });
 
-      events.forEach(e => {
-        if (e.eventType === "COPY_ATTEMPT") counts.copyCount++;
-        if (e.eventType === "PASTE_ATTEMPT") counts.pasteCount++;
-        if (e.eventType === "TAB_SWITCH") counts.tabSwitchCount++;
+      let copyCount = 0;
+      let pasteCount = 0;
+      let tabSwitchCount = 0;
+
+      events.forEach((e) => {
+        if (e.eventType === "COPY_ATTEMPT") copyCount++;
+        if (e.eventType === "PASTE_ATTEMPT") pasteCount++;
+        if (e.eventType === "TAB_SWITCH") tabSwitchCount++;
       });
 
       result.push({
         ...attempt.toObject(),
-        ...counts
+        copyCount,
+        pasteCount,
+        tabSwitchCount
       });
     }
 
     res.json(result);
 
   } catch (err) {
-    console.error(err);
+    console.error("FETCH ATTEMPTS ERROR:", err);
     res.status(500).json({ message: "Failed to fetch attempts" });
   }
 });

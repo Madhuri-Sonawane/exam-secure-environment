@@ -1,6 +1,6 @@
 const express = require("express");
 const { v4: uuid } = require("uuid");
-const fetch = require("node-fetch");
+const axios = require("axios");
 
 const { getClientIp } = require("../services/ip.service");
 const { logEvent } = require("../services/event.service");
@@ -28,7 +28,7 @@ router.post("/start", async (req, res) => {
     let region = "UNKNOWN";
 
     try {
-      const response = await fetch(`https://ipapi.co/${ip}/json/`);
+      const response = await axios.get(`https://ipapi.co/${ip}/json/`);
       const data = await response.json();
       isp = data.org || "UNKNOWN";
       region = data.region || "UNKNOWN";
@@ -112,7 +112,7 @@ router.post("/check-ip", async (req, res) => {
     let newRegion = "UNKNOWN";
 
     try {
-      const response = await fetch(`https://ipapi.co/${currentIp}/json/`);
+      const response = await axios.get(`https://ipapi.co/${currentIp}/json/`);
       const data = await response.json();
       newIsp = data.org || "UNKNOWN";
       newRegion = data.region || "UNKNOWN";

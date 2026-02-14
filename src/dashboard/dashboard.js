@@ -7,11 +7,17 @@ async function loadAttempts() {
 
   attempts.forEach((attempt, index) => {
     const btn = document.createElement("button");
-    btn.innerText = index + 1;
+
+    const displayId = `${index}${attempt.firstName}`;
+
+    btn.innerText = displayId;
+
     btn.onclick = () => loadDetails(attempt.attemptId);
+
     container.appendChild(btn);
   });
 }
+
 
 async function loadDetails(attemptId) {
   const attemptRes = await fetch("/attempt/all");

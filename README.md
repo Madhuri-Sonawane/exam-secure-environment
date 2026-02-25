@@ -224,4 +224,4 @@ Enable proper CORS configuration
 
 👤 Author
 
-Madhuri Rajendra Sonawane
+Madhuri Sonawane
